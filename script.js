@@ -1,6 +1,21 @@
-// Home Cafe Петергоф: вкладки меню и статус «открыто / закрыто».
+// Home Cafe Петергоф: строка разделов в шапке, вкладки меню и статус «открыто / закрыто».
 (() => {
   'use strict';
+
+  /* ---------- Шапка: затухание краёв строки разделов в старых браузерах ---------- */
+  // Где нет анимаций по прокрутке, края показываем по IntersectionObserver
+  const topNav = document.querySelector('.top__nav');
+  if (topNav && !CSS.supports('animation-timeline', 'scroll()')) {
+    topNav.classList.add('no-sda');
+    const first = topNav.firstElementChild, last = topNav.lastElementChild;
+    const io = new IntersectionObserver(entries => {
+      for (const { target, intersectionRatio } of entries) {
+        topNav.classList.toggle(target === first ? 'more-start' : 'more-end', intersectionRatio < 1);
+      }
+    }, { root: topNav, threshold: 1, rootMargin: '1px' });
+    io.observe(first);
+    io.observe(last);
+  }
 
   /* ---------- Вкладки меню ---------- */
   const tablist = document.querySelector('[role="tablist"]');

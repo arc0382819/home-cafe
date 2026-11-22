@@ -34,6 +34,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 76px; -webkit-text-size-adjust: 100%; }
+@media (max-width: 899.98px) { html { scroll-padding-top: 128px; } } /* на телефоне шапка выше: в ней строка разделов */
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--cream); color: var(--ink); font: 400 1rem/1.6 var(--body); font-size-adjust: from-font; }
 img { display: block; max-width: 100%; height: auto; }
@@ -85,16 +86,52 @@ ul { list-style: none; }
 
 /* ===== Шапка ===== */
 .top { position: sticky; top: 0; z-index: 20; background: rgb(247 242 234 / .92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.top__in { display: flex; align-items: center; gap: 18px; min-height: 64px; }
-.logo { display: grid; line-height: 1; text-decoration: none; margin-right: auto; color: var(--sage-dark); }
+/* Телефон: логотип и звонок в первой строке, разделы второй строкой (всегда видны, одно касание).
+   Компьютер (от 900px): всё в одну строку. */
+.top__in {
+  display: grid; align-items: center; column-gap: 18px;
+  grid-template-columns: 1fr auto; grid-template-rows: minmax(64px, auto) auto;
+  grid-template-areas: "logo call" "nav nav";
+}
+.logo { grid-area: logo; justify-self: start; display: grid; line-height: 1; text-decoration: none; color: var(--sage-dark); }
 .logo__name { font: 400 2rem/1 var(--script); }
 .logo__city { font: 600 .62rem/1 var(--body); letter-spacing: .34em; text-transform: uppercase; color: var(--muted); margin: 2px 0 0 4px; }
-.top__nav { display: none; gap: 22px; }
-.top__nav a { text-decoration: none; font-weight: 500; color: var(--muted); }
-.top__nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 5px; }
-.top__call { min-height: 40px; padding: 8px 16px; }
-@media (min-width: 900px) { .top__nav { display: flex; } }
+.top__call { grid-area: call; min-height: 40px; padding: 8px 16px; }
 @media (max-width: 360px) { .top__call span { display: none; } }
+
+/* Строка разделов на телефоне: «таблетки», листается вбок, края затухают, пока есть куда листать */
+.top__nav {
+  grid-area: nav; display: flex; gap: 8px;
+  overflow-x: auto; scrollbar-width: none;
+  padding: 4px 4px 12px; margin-inline: -4px; /* место под рамку фокуса у крайних кнопок */
+  scroll-padding-inline: 2rem;
+  --fade-size: 2rem; --fade-dir: right; --fade-start-pos: 0; --fade-end-pos: 100%;
+  mask:
+    linear-gradient(black, black) no-clip subtract,
+    linear-gradient(to var(--fade-dir), black, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+    linear-gradient(to var(--fade-dir), transparent, black) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+  animation: reveal-fade-start linear both, hide-fade-end linear both;
+  animation-timeline: scroll(self inline);
+  animation-range: 0 var(--fade-size), calc(100% - var(--fade-size)) 100%;
+}
+.top__nav::-webkit-scrollbar { display: none; }
+.top__nav.no-sda { animation: none; transition: --fade-start .2s, --fade-end .2s; }
+.top__nav.no-sda.more-start { --fade-start: var(--fade-size); }
+.top__nav.no-sda.more-end { --fade-end: var(--fade-size); }
+.top__nav a {
+  flex: none; display: inline-flex; align-items: center; min-height: 38px; padding: 0 16px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--paper);
+  font: 500 .95rem/1 var(--body); color: var(--sage-dark); text-decoration: none; white-space: nowrap;
+}
+.top__nav a:hover { background: var(--sage-soft); border-color: var(--sage-soft); }
+.top__nav a:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+@media (min-width: 900px) {
+  .top__in { grid-template-columns: auto 1fr auto; grid-template-rows: minmax(64px, auto); grid-template-areas: "logo nav call"; }
+  .top__nav { justify-self: end; gap: 22px; overflow: visible; padding: 0; margin: 0; mask: none; animation: none; }
+  .top__nav a { min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; font-size: 1rem; color: var(--muted); }
+  .top__nav a:hover { background: none; color: var(--ink); text-decoration: underline; text-underline-offset: 5px; }
+}
 
 /* ===== Главный экран ===== */
 .hero { display: grid; gap: 28px; padding-block: 28px 56px; align-items: center; }
